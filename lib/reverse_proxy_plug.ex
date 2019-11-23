@@ -123,6 +123,10 @@ defmodule ReverseProxyPlug do
 
   defp prepare_url(conn, overrides) do
     keys = [:scheme, :host, :port, :query_string]
+    overrides =
+      if Keyword.has_key?(overrides, :host),
+        do: overrides,
+        else: Keyword.put(overrides, :host, "")
 
     x =
       conn
@@ -138,7 +142,10 @@ defmodule ReverseProxyPlug do
         do: request_path <> "/",
         else: request_path
 
-    url = "#{x[:scheme]}://#{x[:host]}:#{x[:port]}#{request_path}"
+    url =
+      if x[:host] != "",
+        do: "#{x[:scheme]}://#{x[:host]}:#{x[:port]}#{request_path}",
+        else: "#{x[:scheme]}:/#{request_path}"
 
     case x[:query_string] do
       "" -> url
