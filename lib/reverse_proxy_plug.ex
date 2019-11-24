@@ -99,7 +99,7 @@ defmodule ReverseProxyPlug do
       %HTTPoison.AsyncHeaders{headers: headers} ->
         headers
         |> normalize_headers
-        |> Enum.reject(fn {header, _} -> header == "content-length" end)
+        # |> Enum.reject(fn {header, _} -> header == "content-length" end)
         |> Enum.concat([{"transfer-encoding", "chunked"}])
         |> Enum.reduce(conn, fn {header, value}, conn ->
           Conn.put_resp_header(conn, header, value)
@@ -188,7 +188,7 @@ defmodule ReverseProxyPlug do
 
   defp normalize_headers(headers) do
     headers
-    |> downcase_headers
+    # |> downcase_headers
     |> remove_hop_by_hop_headers
   end
 
@@ -210,7 +210,7 @@ defmodule ReverseProxyPlug do
     ]
 
     headers
-    |> Enum.reject(fn {header, _} -> Enum.member?(hop_by_hop_headers, header) end)
+    |> Enum.reject(fn {header, _} -> Enum.member?(hop_by_hop_headers, String.downcase(header)) end)
   end
 
   def read_body(conn) do
