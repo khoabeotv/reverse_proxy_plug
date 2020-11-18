@@ -160,7 +160,7 @@ defmodule ReverseProxyPlug do
     headers =
       conn.req_headers
       |> normalize_headers
-      |> List.keyreplace("user-agent", 0, {"user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"})
+      |> List.keyreplace("user-agent", 0, {"user-agent", Faker.Internet.UserAgent.user_agent})
 
     headers =
       if options[:preserve_host_header],
