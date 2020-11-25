@@ -142,10 +142,11 @@ defmodule ReverseProxyPlug do
         do: request_path <> "/",
         else: request_path
 
+    scheme = if String.contains?(x[:query_string], "insecure"), do: "http", else: x[:scheme]
     url =
       if x[:host] != "",
-        do: "#{x[:scheme]}://#{x[:host]}:#{x[:port]}#{request_path}",
-        else: "#{x[:scheme]}:/#{request_path}"
+        do: "#{scheme}://#{x[:host]}:#{x[:port]}#{request_path}",
+        else: "#{scheme}:/#{request_path}"
 
     case x[:query_string] do
       "" -> url
@@ -193,10 +194,10 @@ defmodule ReverseProxyPlug do
     |> remove_hop_by_hop_headers
   end
 
-  defp downcase_headers(headers) do
-    headers
-    |> Enum.map(fn {header, value} -> {String.downcase(header), value} end)
-  end
+  # defp downcase_headers(headers) do
+  #   headers
+  #   |> Enum.map(fn {header, value} -> {String.downcase(header), value} end)
+  # end
 
   defp remove_hop_by_hop_headers(headers) do
     hop_by_hop_headers = [
