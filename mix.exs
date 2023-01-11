@@ -59,7 +59,7 @@ defmodule ReverseProxyPlug.MixProject do
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:tesla, "~> 1.4", optional: true},
       {:bypass, "~> 2.1.0", optional: true, only: :test},
-      {:faker, "~> 0.16"}
+      {:faker, github: "elixirs/faker", ref: "94f891c3f2ed7000660f27bdb88913273cbe90b6"}
     ]
   end
 
