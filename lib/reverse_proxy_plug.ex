@@ -280,8 +280,13 @@ defmodule ReverseProxyPlug do
     headers =
       conn.req_headers
       |> normalize_headers
-      |> List.keyreplace("user-agent", 0, {"user-agent", Faker.Internet.UserAgent.user_agent})
       |> add_x_fwd_for_header(conn)
+
+    user_agent = :proplists.get_value("user-agent", headers, "hackney")
+    headers =
+      if String.starts_with?(user_agent, "hackney"),
+        do: List.keyreplace(headers, "user-agent", 0, {"user-agent", Faker.Internet.UserAgent.user_agent}),
+        else: headers
 
     headers =
       if options[:preserve_host_header],
