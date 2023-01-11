@@ -1,5 +1,8 @@
 defmodule TestReuse do
+  @moduledoc false
   @default_opts upstream: "example.com", client: ReverseProxyPlug.HTTPClientMock
+
+  alias ReverseProxyPlug.HTTPClient
 
   def get_buffer_responder(response_args) do
     fn _request ->
@@ -50,7 +53,7 @@ defmodule TestReuse do
   end
 
   defp make_response(%{} = args) do
-    %HTTPoison.Response{
+    %HTTPClient.Response{
       status_code: args[:status_code] || 200,
       headers: args[:headers] || [],
       body: args[:body] || "Success"
