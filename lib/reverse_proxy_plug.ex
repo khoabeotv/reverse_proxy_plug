@@ -281,7 +281,7 @@ defmodule ReverseProxyPlug do
     headers =
       conn.req_headers
       |> normalize_headers
-      |> add_x_fwd_for_header(conn)
+      # |> add_x_fwd_for_header(conn)
 
     user_agent = :proplists.get_value("user-agent", headers, "hackney")
     headers =
@@ -342,22 +342,22 @@ defmodule ReverseProxyPlug do
     |> Enum.reject(fn {header, _} -> Enum.member?(hop_by_hop_headers, String.downcase(header)) end)
   end
 
-  defp add_x_fwd_for_header(headers, conn) do
-    {x_fwd_for, headers} = Enum.split_with(headers, fn {k, _v} -> k == "x-forwarded-for" end)
+  # defp add_x_fwd_for_header(headers, conn) do
+  #   {x_fwd_for, headers} = Enum.split_with(headers, fn {k, _v} -> k == "x-forwarded-for" end)
 
-    remote_ip = conn.remote_ip |> Tuple.to_list() |> Enum.join(".")
+  #   remote_ip = conn.remote_ip |> Tuple.to_list() |> Enum.join(".")
 
-    x_forwarded_for =
-      case x_fwd_for do
-        [{"x-forwarded-for", x_fwd_value}] ->
-          "#{x_fwd_value}, #{remote_ip}"
+  #   x_forwarded_for =
+  #     case x_fwd_for do
+  #       [{"x-forwarded-for", x_fwd_value}] ->
+  #         "#{x_fwd_value}, #{remote_ip}"
 
-        _ ->
-          remote_ip
-      end
+  #       _ ->
+  #         remote_ip
+  #     end
 
-    headers ++ [{"x-forwarded-for", x_forwarded_for}]
-  end
+  #   headers ++ [{"x-forwarded-for", x_forwarded_for}]
+  # end
 
   defp recycle_cookies(client_opts, conn) do
     case get_cookies(conn) do
