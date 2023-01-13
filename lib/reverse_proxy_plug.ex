@@ -174,6 +174,7 @@ defmodule ReverseProxyPlug do
       |> normalize_headers
 
     conn
+    |> Conn.delete_resp_header("cache-control")
     |> Conn.prepend_resp_headers(resp_headers)
     |> Conn.resp(status, body)
   end
@@ -316,14 +317,14 @@ defmodule ReverseProxyPlug do
 
   defp normalize_headers(headers) do
     headers
-    # |> downcase_headers
+    |> downcase_headers
     |> remove_hop_by_hop_headers
   end
 
-  # defp downcase_headers(headers) do
-  #   headers
-  #   |> Enum.map(fn {header, value} -> {String.downcase(header), value} end)
-  # end
+  defp downcase_headers(headers) do
+    headers
+    |> Enum.map(fn {header, value} -> {String.downcase(header), value} end)
+  end
 
   defp remove_hop_by_hop_headers(headers) do
     hop_by_hop_headers = [
