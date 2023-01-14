@@ -169,6 +169,7 @@ defmodule ReverseProxyPlug do
          %{status_code: status, body: body, headers: headers},
          _opts
        ) do
+
     resp_headers =
       headers
       |> normalize_headers
@@ -176,7 +177,7 @@ defmodule ReverseProxyPlug do
     conn
     |> Conn.delete_resp_header("cache-control")
     |> Conn.prepend_resp_headers(resp_headers)
-    |> Conn.resp(status, body)
+    |> Conn.resp(status, body || "")
   end
 
   if {:module, HTTPoison} == Code.ensure_loaded(HTTPoison) do
