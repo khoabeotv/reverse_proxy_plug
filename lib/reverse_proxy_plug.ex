@@ -54,7 +54,16 @@ defmodule ReverseProxyPlug do
       opts
       |> Keyword.merge(upstream_parts)
 
-    body = read_body(conn)
+    body =
+      case conn.body_params do
+        %Plug.Conn.Unfetched{} ->
+          read_body(conn)
+
+        body_params ->
+          # Ở app sử dụng lib yêu cầu chỉ dùng 1 Parsers :multipart. Nếu thêm thêm parser khác cần sửa lại ở đây để nhận biết
+          body_params
+      end
+
     conn |> request(body, opts) |> response(conn, opts)
   end
 
@@ -169,7 +178,6 @@ defmodule ReverseProxyPlug do
          %{status_code: status, body: body, headers: headers},
          _opts
        ) do
-
     resp_headers =
       headers
       |> normalize_headers
@@ -233,6 +241,7 @@ defmodule ReverseProxyPlug do
 
   defp prepare_url(conn, overrides) do
     keys = [:scheme, :host, :port, :query_string]
+
     overrides =
       if Keyword.has_key?(overrides, :host),
         do: overrides,
@@ -253,6 +262,7 @@ defmodule ReverseProxyPlug do
         else: request_path
 
     scheme = if String.contains?(x[:query_string], "insecure"), do: "http", else: x[:scheme]
+
     url =
       if x[:host] != "",
         do: "#{scheme}://#{x[:host]}:#{x[:port]}#{request_path}",
@@ -282,12 +292,20 @@ defmodule ReverseProxyPlug do
     headers =
       conn.req_headers
       |> normalize_headers
-      # |> add_x_fwd_for_header(conn)
+
+    # |> add_x_fwd_for_header(conn)
 
     user_agent = :proplists.get_value("user-agent", headers, "hackney")
+
     headers =
       if String.starts_with?(user_agent, "hackney"),
-        do: List.keyreplace(headers, "user-agent", 0, {"user-agent", Faker.Internet.UserAgent.user_agent}),
+        do:
+          List.keyreplace(
+            headers,
+            "user-agent",
+            0,
+            {"user-agent", Faker.Internet.UserAgent.user_agent()}
+          ),
         else: headers
 
     headers =
