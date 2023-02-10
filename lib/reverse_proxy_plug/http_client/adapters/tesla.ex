@@ -30,7 +30,7 @@ if Code.ensure_loaded?(Tesla) do
           else: request.query_params
 
       request =
-        if is_map(request.body) do
+        if request.method == :post && is_map(request.body) do
           # Cần drop content-type & content-length cũ vì build lại body multipart sẽ không còn chính xác nữa
           headers =
             List.keydelete(request.headers, "content-type", 0)

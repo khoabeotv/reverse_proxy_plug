@@ -55,13 +55,16 @@ defmodule ReverseProxyPlug do
       |> Keyword.merge(upstream_parts)
 
     body =
-      case conn.body_params do
-        %Plug.Conn.Unfetched{} ->
+      case {conn.method, conn.body_params} do
+        {"POST", %Plug.Conn.Unfetched{}} ->
           read_body(conn)
 
-        body_params ->
+        {"POST", %{} = body_params} ->
           # Ở app sử dụng lib yêu cầu chỉ dùng 1 Parsers :multipart. Nếu thêm thêm parser khác cần sửa lại ở đây để nhận biết
           body_params
+
+        {_, _} ->
+          read_body(conn)
       end
 
     conn |> request(body, opts) |> response(conn, opts)
