@@ -402,7 +402,12 @@ defmodule ReverseProxyPlug do
   def read_body(%{assigns: %{raw_body: raw_body}}), do: raw_body
 
   def read_body(conn) do
-    case Conn.read_body(conn) do
+    read_body_opts =
+      if body_length = conn.assigns[:body_length],
+        do: [length: body_length],
+        else: []
+
+    case Conn.read_body(conn, read_body_opts) do
       {:ok, body, _conn} ->
         body
 
@@ -418,7 +423,7 @@ defmodule ReverseProxyPlug do
                {:halt, nil}
 
              conn ->
-               case Conn.read_body(conn) do
+               case Conn.read_body(conn, read_body_opts) do
                  {:ok, body, _conn} ->
                    {[body], nil}
 
