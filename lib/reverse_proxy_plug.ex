@@ -129,14 +129,14 @@ defmodule ReverseProxyPlug do
         for _ <- 1..opts[:repeat] do
           case do_request.() do
             {:ok, resp} ->
-              %{status: resp.status_code, headers: resp.headers, body: Base.encode64(resp.body)}
+              %{status: resp.status_code, headers: Map.new(resp.headers), body: Base.encode64(resp.body)}
 
             {:error, error} ->
               %{status: status_from_error(error)}
           end
         end
 
-      {:ok, Jason.encode!(%{repeated: true, body: body})}
+      {:ok, %{repeated: true, body: Jason.encode!(body)}}
     else
       do_request.()
     end
