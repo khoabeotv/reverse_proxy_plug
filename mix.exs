@@ -50,6 +50,7 @@ defmodule ReverseProxyPlug.MixProject do
 
   defp deps do
     [
+      {:jason, "~> 1.4"},
       {:mix_test_watch, "~> 1.1", only: [:dev, :test], runtime: false},
       {:plug, "~> 1.6"},
       {:cowboy, "~> 2.4"},

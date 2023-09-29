@@ -50,9 +50,12 @@ defmodule ReverseProxyPlug do
       |> get_applied_fn(conn)
       |> upstream_parts()
 
+    opts = Keyword.merge(opts, upstream_parts)
     opts =
-      opts
-      |> Keyword.merge(upstream_parts)
+      case Integer.parse(conn.params["_repeat"] || "") do
+        {repeat, ""} -> Keyword.put(opts, :repeat, repeat)
+        _ -> opts
+      end
 
     body =
       case {conn.method, conn.body_params} do
@@ -110,13 +113,33 @@ defmodule ReverseProxyPlug do
   def request(conn, body, opts) do
     {method, url, headers, client_options} = prepare_request(conn, opts)
 
-    opts[:client].request(%HTTPClient.Request{
-      method: method,
-      url: url,
-      body: body,
-      headers: headers,
-      options: client_options
-    })
+    do_request =
+      fn ->
+        opts[:client].request(%HTTPClient.Request{
+          method: method,
+          url: url,
+          body: body,
+          headers: headers,
+          options: client_options
+        })
+      end
+
+    if opts[:repeat] do
+      body =
+        for _ <- 1..opts[:repeat] do
+          case do_request.() do
+            {:ok, resp} ->
+              %{status: resp.status_code, headers: resp.headers, body: Base.encode64(resp.body)}
+
+            {:error, error} ->
+              %{status: status_from_error(error)}
+          end
+        end
+
+      {:ok, Jason.encode!(%{repeated: true, body: body})}
+    else
+      do_request.()
+    end
   end
 
   def response({:ok, resp}, conn, opts) do
@@ -174,6 +197,17 @@ defmodule ReverseProxyPlug do
       keywords
       |> Keyword.put(new_key, keywords[old_key])
       |> Keyword.delete(old_key)
+
+  defp process_response(
+         :buffer,
+         conn,
+         %{repeated: true, body: body},
+         _opts
+       ) do
+    conn
+    |> Conn.delete_resp_header("cache-control")
+    |> Conn.resp(200, body || "")
+  end
 
   defp process_response(
          :buffer,
